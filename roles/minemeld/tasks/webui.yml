@@ -1,6 +1,6 @@
 # clone the webui repo and set permissions
 - name: minemeld-webui repo
-  git: 
+  git:
     repo: "{{webui_repo}}"
     clone: yes
     dest: "{{webui_repo_directory}}"
@@ -35,8 +35,8 @@
     NODE_PATH: "{{www_venv_directory}}/lib/node_modules"
     NPM_CONFIG_PREFIX: "{{www_venv_directory}}"
     npm_config_prefix: "{{www_venv_directory}}"
-- name: nsp check
-  command: nsp check chdir="{{webui_repo_directory}}"
+- name: npm audit
+  command: npm audit chdir="{{webui_repo_directory}}"
   environment:
     NODE_VIRTUAL_ENV: "{{www_venv_directory}}"
     PATH: "{{www_venv_directory}}/lib/node_modules/.bin:{{www_venv_directory}}/bin:{{webui_repo_directory}}/node_modules/.bin:{{ ansible_env.PATH }}"
