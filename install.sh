@@ -7,6 +7,7 @@ if ! [ $(id -u) = 0 ]; then
    exit 1
 fi
 
+# Store the user who launched the script
 if [ $SUDO_USER ]; then
     real_user=$SUDO_USER
 else
@@ -23,49 +24,61 @@ echo "Add your account to the minemeld group?"
 echo "(Recommended for development and troubleshooting)"
 
 # TODO: Split detection and installation account for not having lsb_release
+if [[ -r /etc/centos-release ]]; then
+    centos_install
+elif [[ -r /etc/redhat-release ]]; then
+    redhat_install
+elif [[ -r /etc/lsb-release ]]; then
+    lsb_install
+else;
+    echo "Sorry, no supported distro detected"
+fi
+
 
 # Apt based?
 # Needs testing
-if [[ -x $(which apt-get) ]]; then
-    if [ $(lsb_release -is) == "Ubuntu" ]; then
-        echo -e "Detectd Ubuntu"
-        if [ $(lsb_release -rs) ==  "14.04"]; then
-            echo -e "Version 14.04 is supported, proceeding"
-            apt-get update
-            apt-get upgrade
-            apt-get install -y gcc git python2.7-dev libffi-dev libssl-dev make
-        elif [ $(lsb_release -rs) ==  "16.04"]; then
-            echo -ne "Version 16.04 is supported, proceeding"
-            apt-get update
-            apt-get upgrade
-            apt-get install -y gcc git python-minimal python2.7-dev libffi-dev libssl-dev make
-        else; then
-            echo "Sorry, did not detect a supported version"
+lsb_install(){
+    if [[ -x $(which apt-get) ]]; then
+        if [ $(lsb_release -is) == "Ubuntu" ]; then
+            echo -e "Detectd Ubuntu"
+            if [ $(lsb_release -rs) ==  "14.04"]; then
+                echo -e "Version 14.04 is supported, proceeding"
+                apt-get update
+                apt-get upgrade
+                apt-get install -y gcc git python2.7-dev libffi-dev libssl-dev make
+            elif [ $(lsb_release -rs) ==  "16.04"]; then
+                echo -ne "Version 16.04 is supported, proceeding"
+                apt-get update
+                apt-get upgrade
+                apt-get install -y gcc git python-minimal python2.7-dev libffi-dev libssl-dev make
+            else; then
+                echo "Sorry, did not detect a supported version"
+            fi
+        elif [ $(lsb_release -is) == "Debian" ]; then
+            echo -e "Detected Debian"
+            if [ $(lsb_release -rs) ==  "7" ] or [ $(lsb_release -rs) ==  "9" ]; then
+                echo -e "Debian 7 and 9 are supported, proceeding"
+                apt-get update
+                apt-get upgrade # optional
+                apt-get install -y gcc git python2.7-dev libffi-dev libssl-dev
+            fi
+        else;
+            echo "Sorry dude, you're not supported"
         fi
-    elif [ $(lsb_release -is) == "Debian" ]; then
-        echo -e "Detected Debian"
-        if [ $(lsb_release -rs) ==  "7" ] or [ $(lsb_release -rs) ==  "9" ]; then
-            echo -e "Debian 7 and 9 are supported, proceeding"
-            apt-get update
-            apt-get upgrade # optional
-            apt-get install -y gcc git python2.7-dev libffi-dev libssl-dev
-        fi
-    else;
-        echo "Sorry dude, you're not supported"
     fi
-fi
-
+}
 
 # RHEL/CentOS 7
 # This is broken for sure
-if [[ -x $(which yum) ]]; then
-    if [ $(lsb_release -is) == "CentOS" ] and [ $(lsb_release -rs) == "7" ]; then
-        echo -e "Detected CentOS"
-        echo -e "CentOS 7 is supported, proceeding"
-        yum install -y wget git gcc python-devel libffi-devel openssl-devel
+centos_install(){
+    if [[ -x $(which yum) ]]; then
+        if [ $(lsb_release -is) == "CentOS" ] and [ $(lsb_release -rs) == "7" ]; then
+            echo -e "Detected CentOS"
+            echo -e "CentOS 7 is supported, proceeding"
+            yum install -y wget git gcc python-devel libffi-devel openssl-devel
+        fi
     fi
-fi
-
+}
 # Universal steps begin
 
 # Fetch pip
