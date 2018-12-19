@@ -14,6 +14,15 @@ else
     real_user=$(whoami)
 fi
 
+# Variables
+tmpdir=${mktemp -d}
+tmppip=${mktemp}
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null && pwd )" #thanks stackexchange
+wherearewe=$(basename $DIR)
+usedev=0
+addtogroup=0
+mmstatusalias=$(mmstatusalias)
+
 # Init and user prompts
 echo "This script will attempt to install Minemeld for your distro"
 
@@ -34,19 +43,18 @@ else;
     echo "Sorry, no supported distro detected"
 fi
 
-
 # Apt based?
 # Needs testing
 lsb_install(){
     if [[ -x $(which apt-get) ]]; then
         if [ $(lsb_release -is) == "Ubuntu" ]; then
             echo -e "Detectd Ubuntu"
-            if [ $(lsb_release -rs) ==  "14.04"]; then
+            if [[ $(lsb_release -rs) == "14.04" ]]; then
                 echo -e "Version 14.04 is supported, proceeding"
                 apt-get update
                 apt-get upgrade
                 apt-get install -y gcc git python2.7-dev libffi-dev libssl-dev make
-            elif [ $(lsb_release -rs) ==  "16.04"]; then
+            elif [[ $(lsb_release -rs) == "16.04" ]]; then
                 echo -ne "Version 16.04 is supported, proceeding"
                 apt-get update
                 apt-get upgrade
@@ -54,12 +62,12 @@ lsb_install(){
             else; then
                 echo "Sorry, did not detect a supported version"
             fi
-        elif [ $(lsb_release -is) == "Debian" ]; then
+        elif [[ $(lsb_release -is) == "Debian" ]]; then
             echo -e "Detected Debian"
-            if [ $(lsb_release -rs) ==  "7" ] or [ $(lsb_release -rs) ==  "9" ]; then
+            if [[ $(lsb_release -rs) == "7" || $(lsb_release -rs) ==  "9" ]]; then
                 echo -e "Debian 7 and 9 are supported, proceeding"
                 apt-get update
-                apt-get upgrade # optional
+                apt-get upgrade
                 apt-get install -y gcc git python2.7-dev libffi-dev libssl-dev
             fi
         else;
@@ -72,7 +80,7 @@ lsb_install(){
 # This is broken for sure
 centos_install(){
     if [[ -x $(which yum) ]]; then
-        if [ $(lsb_release -is) == "CentOS" ] and [ $(lsb_release -rs) == "7" ]; then
+        if [[ $(lsb_release -is) == "CentOS" && $(lsb_release -rs) == "7" ]]; then
             echo -e "Detected CentOS"
             echo -e "CentOS 7 is supported, proceeding"
             yum install -y wget git gcc python-devel libffi-devel openssl-devel
@@ -83,32 +91,52 @@ centos_install(){
 
 # Fetch pip
 if [[ -x $(which wget) ]]; then
-    wget https://bootstrap.pypa.io/get-pip.py
+    wget -O $(tmppip) https://bootstrap.pypa.io/get-pip.py
 else;
     echo 'Something is wrong with your $PATH or wget'
 fi
 
-# Check for python and ensure we're using 2.7
-if [[ -x $(which python) ]]; then
-
-
+# Install pip
+if [[ -x $(/usr/bin/env python) ]]; then
+    python $(tmppip)
+else;
+    echo 'Error invoking python, please check your $PATH and try again'
 fi
 
-# Install pip
-sudo -H python get-pip.py
+# Install Ansible
+if [[ -x $(which pip) ]]; then
+    pip install ansible
+fi
 
-# Install ansible
-sudo -H pip install ansible
+# Check if we're in the minemeld ansible repo
 
-# Get the ansible repo
-git clone https://github.com/PaloAltoNetworks/minemeld-ansible.git
+if [[ $wherearewe == "minemeld-ansible" ]]; then
+    echo "Looks like you already have the Ansible Playbook, skipping git clone"
+else;
+    git clone https://github.com/PaloAltoNetworks/minemeld-ansible.git $(tmpdir)
+fi
 
 # Run the ansible playbook
-ansible-playbook -K -i 127.0.0.1, minemeld-ansible/local.yml
+echo "Running Ansible Playbook"
+if [[ -r local.yaml ]]; then
+    ansible-playbook -K -i 127.0.0.1, local.yml
+elif [[ -d minemeld-ansible ]]; then
+    if [[ -r $(tmpdir)/local.yaml ]]
+        ansible-playbook -K -i 127.0.0.1, $(tmpdir)/local.yml
+    fi
+else;
+    echo "Could not read ansible playbook, something is wrong"
+fi
 
 # Add the user who started this to minemeld group
-# check $PATH and sudo requirements for Debian, was 'sudo /usr/sbin/usermod'
-usermod -a -G minemeld ${real_user} # add your user to minemeld group, useful for development
+if [[ $addtogroup ]]; then
+    if [[ -x $(which usermod) ]]; then
+        usermod -a -G minemeld ${real_user} # add your user to minemeld group, useful for development
+    elsif [[ -x /usr/sbin/usermod ]]; then
+        /usr/sbin/usermod -a -G minemeld ${real_user}
+    else;
+        echo "Unexpected error updating your group membership"
+fi
 
 # Clean up
 
@@ -116,4 +144,21 @@ usermod -a -G minemeld ${real_user} # add your user to minemeld group, useful fo
 sudo -u minemeld /opt/minemeld/engine/current/bin/supervisorctl -c /opt/minemeld/supervisor/config/supervisord.conf status
 
 # Add aliases to /etc/profile?
-echo "Would you like to create aliases for minemeld?"
+addalias(){
+    if [[ $0 == "bash" ]]; then
+        if [[ -w /etc/bashrc ]]
+            echo $(mmstatusalias) >> /etc/bashrc
+        elif [[ -w ~$(real_user)/.bashrc ]]; then
+            echo $(mmstatusalias) >> ~$(real_user)/.bashrc
+        else;
+            echo "Unexpected error"
+    elif [[ $0 == "zsh" ]]; then
+        if [[ -w /etc/zshrc ]]
+            echo $(mmstatusalias) >> /etc/zshrc
+        elif [[ -w ~$(real_user)/.zshrc ]]; then
+            echo $(mmstatusalias) >> ~$(real_user)/.zshrc
+        else;
+            echo "Unexpected error"
+        fi
+    fi
+}
