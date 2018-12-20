@@ -75,6 +75,7 @@ rhel_install() {
                 yum install -y wget git gcc python-devel libffi-devel openssl-devel
             else
                 echo "Could not detect a supported version of RedHat or CentOS"
+            fi
         fi
     else
         echo "Unexpected error, how did you get here?"
