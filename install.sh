@@ -69,6 +69,7 @@ lsb_install() {
         else
             echo "Sorry, you're not supported"
             echo ""
+            exit 0
         fi
     fi
 }
@@ -92,6 +93,7 @@ rhel_install() {
     else
         echo "Unexpected error, how did you get here?"
         echo ""
+        exit 0
     fi
 }
 
@@ -118,15 +120,17 @@ getpip() {
     else
         echo "Can't find curl or wget, you need one of them"
         echo ""
+        exit 0
     fi
-
+    echo "Downloaded pip to ${tmppip}"
+    echo "Now I'll try to install it by running python ${tmppip}"
     if [[ -x $(/usr/bin/env python) ]]; then
         if [[ -s ${tmppip} ]]; then
             python ${tmppip}
-            echo "python ${tmppip}"
         else
             echo "Something went wrong with pip installation"
             echo ""
+            exit 0
         fi
     fi
 }
@@ -136,7 +140,9 @@ getansible() {
     if [[ -x $(which pip 2>/dev/null) ]]; then
         pip install ansible
     else
-        "Unexpected error with pip installation"
+        echo "Unexpected error with pip installation"
+        echo ""
+        exit 0
     fi
 }
 
@@ -163,6 +169,7 @@ runplaybook() {
     else
         echo "Could not read ansible playbook, something is wrong"
         echo ""
+        exit 0
     fi
 }
 
