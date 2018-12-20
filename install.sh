@@ -97,15 +97,13 @@ rhel_install() {
 
 # Add an alias for checking on minemeld to bashrc
 addalias() {
-    if [[ $0 == "bash" ]]; then
-        if [[ -w /etc/bashrc ]]; then
-            echo ${mmstatusalias} >> /etc/bashrc
-        elif [[ -w ~${real_user}/.bashrc ]]; then
-            echo ${mmstatusalias} >> ~${real_user}/.bashrc
-        else
-            echo "Can't find appropriate rc"
-            echo ""
-        fi
+    if [[ -w /etc/bashrc ]]; then
+        echo ${mmstatusalias} >> /etc/bashrc
+    elif [[ -w ~${real_user}/.bashrc ]]; then
+        echo ${mmstatusalias} >> ~${real_user}/.bashrc
+    else
+        echo "Can't find appropriate rc"
+        echo ""
     fi
 }
 
@@ -157,11 +155,10 @@ gitmm() {
 runplaybook() {
     echo "Running Ansible Playbook"
     echo ""
-    if [[ -r local.yaml ]]; then
+    if [[ -r local.yml ]]; then
         ansible-playbook -K -i 127.0.0.1, local.yml
-    elif [[ -r ${tmpdir}/local.yaml ]]; then
-            ansible-playbook -K -i 127.0.0.1, ${tmpdir}/local.yml
-    fi
+    elif [[ -r ${tmpdir}/local.yml ]]; then
+        ansible-playbook -K -i 127.0.0.1, ${tmpdir}/local.yml
     else
         echo "Could not read ansible playbook, something is wrong"
         echo ""
@@ -171,15 +168,13 @@ runplaybook() {
 
 # Add the user to the MM group
 groupadd() {
-    if [[ $addtogroup ]]; then
-        if [[ -x $(which usermod 2>/dev/null) ]]; then
-            usermod -a -G minemeld ${real_user} # add your user to minemeld group, useful for development
-        elif [[ -x /usr/sbin/usermod ]]; then
-            /usr/sbin/usermod -a -G minemeld ${real_user}
-        else
-            echo "Unexpected error updating your group membership"
-            echo ""
-        fi
+    if [[ -x $(which usermod 2>/dev/null) ]]; then
+        usermod -a -G minemeld ${real_user} # add your user to minemeld group, useful for development
+    elif [[ -x /usr/sbin/usermod ]]; then
+        /usr/sbin/usermod -a -G minemeld ${real_user}
+    else
+        echo "Unexpected error updating your group membership"
+        echo ""
     fi
 }
 
