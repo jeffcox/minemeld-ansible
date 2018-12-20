@@ -86,14 +86,14 @@ rhel_install() {
 # I'm pretty sure this would never work for zsh but low priority
 addalias() {
     if [[ $0 == "bash" ]]; then
-        if [[ -w /etc/bashrc ]]
+        if [[ -w /etc/bashrc ]]; then
             echo ${mmstatusalias} >> /etc/bashrc
         elif [[ -w ~${real_user}/.bashrc ]]; then
             echo ${mmstatusalias} >> ~${real_user}/.bashrc
         else
             echo "Unexpected error"
     elif [[ $0 == "zsh" ]]; then
-        if [[ -w /etc/zshrc ]]
+        if [[ -w /etc/zshrc ]]; then
             echo ${mmstatusalias} >> /etc/zshrc
         elif [[ -w ~${real_user}/.zshrc ]]; then
             echo ${mmstatusalias} >> ~${real_user}/.zshrc
