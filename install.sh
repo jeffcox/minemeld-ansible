@@ -147,7 +147,7 @@ gitmm() {
         echo "Looks like you already have the Ansible Playbook, skipping git clone"
         echo ""
     else
-        git clone https://github.com/PaloAltoNetworks/minemeld-ansible.git ${tmpdir}
+        git clone https://github.com/jeffcox/minemeld-ansible.git ${tmpdir}
     fi
 }
 
@@ -218,9 +218,9 @@ sudo -u minemeld /opt/minemeld/engine/current/bin/supervisorctl -c /opt/minemeld
 # Add to group?
 while [[ groupanswer=="" ]]; do
     read -p "Add an alias for MineMeld Satus? [y/n]: " groupanswer
-    if [[ $(groupanswer) == "Y" || $(groupanswer) == "y" ]]; then
+    if [[ ${groupanswer} == "Y" || ${groupanswer} == "y" ]]; then
         groupadd
-    elif [[ $(groupanswer) == "N" || $(groupanswer) == "n" ]]; then
+    elif [[ ${groupanswer} == "N" || ${groupanswer} == "n" ]]; then
         break
     else
         echo "Bad input"
@@ -232,9 +232,9 @@ done
 # Add aliases to /etc/profile?
 while [[ aliasanswer=="" ]]; do
     read -p "Add an alias for MineMeld Satus? [y/n]: " aliasanswer
-    if [[ $(aliasanswer) == "Y" || $(aliasanswer) == "y" ]]; then
+    if [[ ${aliasanswer} == "Y" || ${aliasanswer} == "y" ]]; then
         addalias
-    elif [[ $(aliasanswer) == "N" || $(aliasanswer) == "n" ]]; then
+    elif [[ ${aliasanswer} == "N" || ${aliasanswer} == "n" ]]; then
         break
     else
         echo "Bad input"
