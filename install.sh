@@ -34,7 +34,7 @@ groupanswer=""
 # ===
 
 # Apt based?
-function lsb_install {
+lsb_install() {
     if [[ -x $(which apt-get) ]]; then
         if [ $(lsb_release -is) == "Ubuntu" ]; then
             echo "Detectd Ubuntu"
@@ -66,7 +66,7 @@ function lsb_install {
 }
 
 # RHEL/CentOS 7
-function rhel_install {
+rhel_install() {
     if [[ -x $(which yum) ]]; then
         if [[ -r /etc/os-release ]]; then
             rhelver=$(grep 'REDHAT_SUPPORT_PRODUCT_VERSION' /etc/os-release | grep -o [0-9])
@@ -83,7 +83,7 @@ function rhel_install {
 
 # Add an alias for checking on minemeld to shell rcs
 # I'm pretty sure this would never work for zsh but low priority
-function addalias {
+addalias() {
     if [[ $0 == "bash" ]]; then
         if [[ -w /etc/bashrc ]]
             echo ${mmstatusalias} >> /etc/bashrc
@@ -103,7 +103,7 @@ function addalias {
 }
 
 # Get pip
-function getpip {
+getpip() {
     if [[ -x $(which wget) ]]; then
         wget -O ${tmppip} https://bootstrap.pypa.io/get-pip.py
     else
@@ -117,7 +117,7 @@ function getpip {
 }
 
 # Get ansible from pip
-function getansible {
+getansible() {
     if [[ -x $(which pip) ]]; then
         pip install ansible
     else
@@ -126,7 +126,7 @@ function getansible {
 }
 
 # Check if we're in the minemeld ansible repo
-function gitmm {
+gitmm() {
     if [[ $wherearewe == "minemeld-ansible" ]]; then
         echo "Looks like you already have the Ansible Playbook, skipping git clone"
     else
@@ -135,7 +135,7 @@ function gitmm {
 }
 
 # Run the ansible playbook
-function runplaybook {
+runplaybook() {
     echo "Running Ansible Playbook"
     if [[ -r local.yaml ]]; then
         ansible-playbook -K -i 127.0.0.1, local.yml
@@ -149,7 +149,7 @@ function runplaybook {
 }
 
 # Add the user to the MM group
-function groupadd {
+groupadd() {
     if [[ $addtogroup ]]; then
         if [[ -x $(which usermod) ]]; then
             usermod -a -G minemeld ${real_user} # add your user to minemeld group, useful for development
@@ -161,7 +161,7 @@ function groupadd {
 }
 
 # Read /etc for version info
-function distrocheck {
+distrocheck() {
     if [[ -r /etc/centos-release ]]; then
         rhel_install
     elif [[ -r /etc/redhat-release ]]; then
