@@ -4,6 +4,7 @@
 # Check for and require root execution
 if ! [ $(id -u) = 0 ]; then
    echo "The script need to be run as root." >&2
+   echo ""
    exit 1
 fi
 
@@ -35,50 +36,62 @@ groupanswer=""
 
 # Apt based?
 lsb_install() {
-    if [[ -x $(which apt-get) ]]; then
+    if [[ -x $(which apt-get 2>/dev/null) ]]; then
         if [ $(lsb_release -is) == "Ubuntu" ]; then
             echo "Detectd Ubuntu"
+            echo ""
             if [[ $(lsb_release -rs) == "14.04" ]]; then
                 echo "Version 14.04 is supported, proceeding"
+                echo ""
                 apt-get update
                 apt-get upgrade
                 apt-get install -y gcc git python2.7-dev libffi-dev libssl-dev make
             elif [[ $(lsb_release -rs) == "16.04" ]]; then
                 echo "Version 16.04 is supported, proceeding"
+                echo ""
                 apt-get update
                 apt-get upgrade
                 apt-get install -y gcc git python-minimal python2.7-dev libffi-dev libssl-dev make
             else
                 echo "Sorry, did not detect a supported version"
+                echo ""
             fi
         elif [[ $(lsb_release -is) == "Debian" ]]; then
             echo "Detected Debian"
+            echo ""
             if [[ $(lsb_release -rs) == "7" || $(lsb_release -rs) ==  "9" ]]; then
                 echo "Debian 7 and 9 are supported, proceeding"
+                echo ""
                 apt-get update
                 apt-get upgrade
                 apt-get install -y gcc git python2.7-dev libffi-dev libssl-dev
             fi
         else
             echo "Sorry, you're not supported"
+            echo ""
         fi
     fi
 }
 
 # RHEL/CentOS 7
 rhel_install() {
-    if [[ -x $(which yum) ]]; then
+    if [[ -x $(which yum 2>/dev/null) ]]; then
+        echo "Found yum"
+        echo ""
         if [[ -r /etc/os-release ]]; then
             rhelver=$(grep 'REDHAT_SUPPORT_PRODUCT_VERSION' /etc/os-release | grep -o [0-9])
-            if [[ rhelver == 7 ]]; then
+            if [[ ${rhelver} == "7" ]]; then
                 echo "Detected RHEL or CentOS 7, proceeding"
+                echo ""
                 yum install -y wget git gcc python-devel libffi-devel openssl-devel
             else
                 echo "Could not detect a supported version of RedHat or CentOS"
+                echo ""
             fi
         fi
     else
         echo "Unexpected error, how did you get here?"
+        echo ""
     fi
 }
 
@@ -91,27 +104,36 @@ addalias() {
             echo ${mmstatusalias} >> ~${real_user}/.bashrc
         else
             echo "Can't find appropriate rc"
+            echo ""
         fi
     fi
 }
 
 # Get pip
 getpip() {
-    if [[ -x $(which wget) ]]; then
+    if [[ -x $(which wget 2>/dev/null) ]]; then
         wget -O ${tmppip} https://bootstrap.pypa.io/get-pip.py
+    elif [[ -x $(which curl 2>/dev/null) ]]; then
+        curl -o ${tmppip} https://bootstrap.pypa.io/get-pip.py
     else
-        echo 'Something is wrong with your $PATH or wget'
+        echo "Can't find curl or wget, you need one of them"
+        echo ""
     fi
+
     if [[ -x $(/usr/bin/env python) ]]; then
-        python ${tmppip}
-    else
-        echo 'Error invoking python, please check your $PATH and try again'
+        if [[ -s ${tmppip} ]]; then
+            python ${tmppip}
+            echo "python ${tmppip}"
+        else
+            echo "Something went wrong with pip installation"
+            echo ""
+        fi
     fi
 }
 
 # Get ansible from pip
 getansible() {
-    if [[ -x $(which pip) ]]; then
+    if [[ -x $(which pip 2>/dev/null) ]]; then
         pip install ansible
     else
         "Unexpected error with pip installation"
@@ -122,6 +144,7 @@ getansible() {
 gitmm() {
     if [[ $wherearewe == "minemeld-ansible" ]]; then
         echo "Looks like you already have the Ansible Playbook, skipping git clone"
+        echo ""
     else
         git clone https://github.com/PaloAltoNetworks/minemeld-ansible.git ${tmpdir}
     fi
@@ -130,26 +153,30 @@ gitmm() {
 # Run the ansible playbook
 runplaybook() {
     echo "Running Ansible Playbook"
+    echo ""
     if [[ -r local.yaml ]]; then
         ansible-playbook -K -i 127.0.0.1, local.yml
     elif [[ -d minemeld-ansible ]]; then
-        if [[ -r ${tmpdir}/local.yaml ]]
+        if [[ -r ${tmpdir}/local.yaml ]]; then
             ansible-playbook -K -i 127.0.0.1, ${tmpdir}/local.yml
         fi
     else
         echo "Could not read ansible playbook, something is wrong"
+        echo ""
     fi
 }
 
 # Add the user to the MM group
 groupadd() {
     if [[ $addtogroup ]]; then
-        if [[ -x $(which usermod) ]]; then
+        if [[ -x $(which usermod 2>/dev/null) ]]; then
             usermod -a -G minemeld ${real_user} # add your user to minemeld group, useful for development
-        elsif [[ -x /usr/sbin/usermod ]]; then
+        elif [[ -x /usr/sbin/usermod ]]; then
             /usr/sbin/usermod -a -G minemeld ${real_user}
         else
             echo "Unexpected error updating your group membership"
+            echo ""
+        fi
     fi
 }
 
@@ -163,6 +190,7 @@ distrocheck() {
         lsb_install
     else
         echo "Sorry, no supported distro detected"
+        echo ""
     fi
 }
 
@@ -172,7 +200,7 @@ distrocheck() {
 
 distrocheck
 
-if [[ -x $(which pip) ]]; then
+if [[ -x $(which pip 2>/dev/null)  ]]; then
     getansible
 else
     getpip
@@ -185,6 +213,7 @@ runplaybook
 
 # Check Minemeld status
 echo "Waiting 30 seconds for MineMeld to start"
+echo ""
 sleep 30
 sudo -u minemeld /opt/minemeld/engine/current/bin/supervisorctl -c /opt/minemeld/supervisor/config/supervisord.conf status
 
@@ -197,6 +226,7 @@ while [[ groupanswer=="" ]]; do
         break
     else
         echo "Bad input"
+        echo ""
         groupanswer=""
     fi
 done
@@ -210,6 +240,7 @@ while [[ aliasanswer=="" ]]; do
         break
     else
         echo "Bad input"
+        echo ""
         aliasanswer=""
     fi
 done
