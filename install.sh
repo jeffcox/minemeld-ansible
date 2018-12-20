@@ -82,8 +82,7 @@ rhel_install() {
     fi
 }
 
-# Add an alias for checking on minemeld to shell rcs
-# I'm pretty sure this would never work for zsh but low priority
+# Add an alias for checking on minemeld to bashrc
 addalias() {
     if [[ $0 == "bash" ]]; then
         if [[ -w /etc/bashrc ]]; then
@@ -91,14 +90,7 @@ addalias() {
         elif [[ -w ~${real_user}/.bashrc ]]; then
             echo ${mmstatusalias} >> ~${real_user}/.bashrc
         else
-            echo "Unexpected error"
-    elif [[ $0 == "zsh" ]]; then
-        if [[ -w /etc/zshrc ]]; then
-            echo ${mmstatusalias} >> /etc/zshrc
-        elif [[ -w ~${real_user}/.zshrc ]]; then
-            echo ${mmstatusalias} >> ~${real_user}/.zshrc
-        else
-            echo "Unexpected error"
+            echo "Can't find appropriate rc"
         fi
     fi
 }
