@@ -77,8 +77,6 @@ lsb_install() {
 # RHEL/CentOS 7
 rhel_install() {
     if [[ -x $(which yum 2>/dev/null) ]]; then
-        echo "Found yum"
-        echo ""
         if [[ -r /etc/os-release ]]; then
             rhelver=$(grep 'REDHAT_SUPPORT_PRODUCT_VERSION' /etc/os-release | grep -o [0-9])
             if [[ ${rhelver} == "7" ]]; then
@@ -122,9 +120,8 @@ getpip() {
         echo ""
         exit 0
     fi
-    echo "Downloaded pip to ${tmppip}"
-    echo "Now I'll try to install it by running python ${tmppip}"
-    if [[ -x $(/usr/bin/env python) ]]; then
+
+    if [[ -x $(which python 2>/dev/null) ]]; then
         if [[ -s ${tmppip} ]]; then
             python ${tmppip}
         else
@@ -162,10 +159,9 @@ runplaybook() {
     echo ""
     if [[ -r local.yaml ]]; then
         ansible-playbook -K -i 127.0.0.1, local.yml
-    elif [[ -d minemeld-ansible ]]; then
-        if [[ -r ${tmpdir}/local.yaml ]]; then
+    elif [[ -r ${tmpdir}/local.yaml ]]; then
             ansible-playbook -K -i 127.0.0.1, ${tmpdir}/local.yml
-        fi
+    fi
     else
         echo "Could not read ansible playbook, something is wrong"
         echo ""
