@@ -34,7 +34,7 @@ groupanswer=""
 # ===
 
 # Apt based?
-lsb_install(){
+function lsb_install {
     if [[ -x $(which apt-get) ]]; then
         if [ $(lsb_release -is) == "Ubuntu" ]; then
             echo "Detectd Ubuntu"
@@ -48,7 +48,7 @@ lsb_install(){
                 apt-get update
                 apt-get upgrade
                 apt-get install -y gcc git python-minimal python2.7-dev libffi-dev libssl-dev make
-            else; then
+            else
                 echo "Sorry, did not detect a supported version"
             fi
         elif [[ $(lsb_release -is) == "Debian" ]]; then
@@ -59,83 +59,83 @@ lsb_install(){
                 apt-get upgrade
                 apt-get install -y gcc git python2.7-dev libffi-dev libssl-dev
             fi
-        else;
+        else
             echo "Sorry, you're not supported"
         fi
     fi
 }
 
 # RHEL/CentOS 7
-rhel_install(){
+function rhel_install {
     if [[ -x $(which yum) ]]; then
         if [[ -r /etc/os-release ]]; then
             rhelver=$(grep 'REDHAT_SUPPORT_PRODUCT_VERSION' /etc/os-release | grep -o [0-9])
             if [[ rhelver == 7 ]]; then
                 echo "Detected RHEL or CentOS 7, proceeding"
                 yum install -y wget git gcc python-devel libffi-devel openssl-devel
-            else;
+            else
                 echo "Could not detect a supported version of RedHat or CentOS"
         fi
-    else;
+    else
         echo "Unexpected error, how did you get here?"
     fi
 }
 
 # Add an alias for checking on minemeld to shell rcs
 # I'm pretty sure this would never work for zsh but low priority
-addalias(){
+function addalias {
     if [[ $0 == "bash" ]]; then
         if [[ -w /etc/bashrc ]]
             echo ${mmstatusalias} >> /etc/bashrc
         elif [[ -w ~${real_user}/.bashrc ]]; then
             echo ${mmstatusalias} >> ~${real_user}/.bashrc
-        else;
+        else
             echo "Unexpected error"
     elif [[ $0 == "zsh" ]]; then
         if [[ -w /etc/zshrc ]]
             echo ${mmstatusalias} >> /etc/zshrc
         elif [[ -w ~${real_user}/.zshrc ]]; then
             echo ${mmstatusalias} >> ~${real_user}/.zshrc
-        else;
+        else
             echo "Unexpected error"
         fi
     fi
 }
 
 # Get pip
-getpip(){
+function getpip {
     if [[ -x $(which wget) ]]; then
         wget -O ${tmppip} https://bootstrap.pypa.io/get-pip.py
-    else;
+    else
         echo 'Something is wrong with your $PATH or wget'
     fi
     if [[ -x $(/usr/bin/env python) ]]; then
         python ${tmppip}
-    else;
+    else
         echo 'Error invoking python, please check your $PATH and try again'
     fi
 }
 
 # Get ansible from pip
-getansible(){
+function getansible {
     if [[ -x $(which pip) ]]; then
         pip install ansible
-    else;
+    else
         "Unexpected error with pip installation"
     fi
 }
 
 # Check if we're in the minemeld ansible repo
-gitmm(){
+function gitmm {
     if [[ $wherearewe == "minemeld-ansible" ]]; then
         echo "Looks like you already have the Ansible Playbook, skipping git clone"
-    else;
+    else
         git clone https://github.com/PaloAltoNetworks/minemeld-ansible.git ${tmpdir}
     fi
 }
 
 # Run the ansible playbook
-runplaybook(){
+function runplaybook {
     echo "Running Ansible Playbook"
     if [[ -r local.yaml ]]; then
         ansible-playbook -K -i 127.0.0.1, local.yml
@@ -143,32 +143,32 @@ runplaybook(){
         if [[ -r ${tmpdir}/local.yaml ]]
             ansible-playbook -K -i 127.0.0.1, ${tmpdir}/local.yml
         fi
-    else;
+    else
         echo "Could not read ansible playbook, something is wrong"
     fi
 }
 
 # Add the user to the MM group
-groupadd(){
+function groupadd {
     if [[ $addtogroup ]]; then
         if [[ -x $(which usermod) ]]; then
             usermod -a -G minemeld ${real_user} # add your user to minemeld group, useful for development
         elsif [[ -x /usr/sbin/usermod ]]; then
             /usr/sbin/usermod -a -G minemeld ${real_user}
-        else;
+        else
             echo "Unexpected error updating your group membership"
     fi
 }
 
 # Read /etc for version info
-distrocheck(){
+function distrocheck {
     if [[ -r /etc/centos-release ]]; then
         rhel_install
     elif [[ -r /etc/redhat-release ]]; then
         rhel_install
     elif [[ -r /etc/lsb-release ]]; then
         lsb_install
-    else;
+    else
         echo "Sorry, no supported distro detected"
     fi
 }
@@ -181,7 +181,7 @@ distrocheck
 
 if [[ -x $(which pip) ]]; then
     getansible
-else;
+else
     getpip
     getansible
 fi
@@ -202,7 +202,7 @@ while [[ groupanswer=="" ]]; do
         groupadd
     elif [[ $(groupanswer) == "N" || $(groupanswer) == "n" ]]; then
         break
-    else;
+    else
         echo "Bad input"
         groupanswer=""
     fi
@@ -215,7 +215,7 @@ while [[ aliasanswer=="" ]]; do
         addalias
     elif [[ $(aliasanswer) == "N" || $(aliasanswer) == "n" ]]; then
         break
-    else;
+    else
         echo "Bad input"
         aliasanswer=""
     fi
