@@ -210,13 +210,14 @@ gitmm
 runplaybook
 
 # Check Minemeld status
-echo "Waiting 30 seconds for MineMeld to start"
-echo ""
-sleep 30
+sleep 5
+echo "Waiting for MineMeld to start"
+sleep 55
+
 sudo -u minemeld /opt/minemeld/engine/current/bin/supervisorctl -c /opt/minemeld/supervisor/config/supervisord.conf status
 
 # Add to group?
-while [[ groupanswer=="" ]]; do
+while [[ ${groupanswer}=="" ]]; do
     read -p "Add an alias for MineMeld Satus? [y/n]: " groupanswer
     if [[ ${groupanswer} == "Y" || ${groupanswer} == "y" ]]; then
         groupadd
@@ -230,7 +231,7 @@ while [[ groupanswer=="" ]]; do
 done
 
 # Add aliases to /etc/profile?
-while [[ aliasanswer=="" ]]; do
+while [[ ${aliasanswer}=="" ]]; do
     read -p "Add an alias for MineMeld Satus? [y/n]: " aliasanswer
     if [[ ${aliasanswer} == "Y" || ${aliasanswer} == "y" ]]; then
         addalias
