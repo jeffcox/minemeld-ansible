@@ -95,18 +95,6 @@ rhel_install() {
     fi
 }
 
-# Add an alias for checking on minemeld to bashrc
-addalias() {
-    if [[ -w /etc/bashrc ]]; then
-        echo ${mmstatusalias} >> /etc/bashrc
-    elif [[ -w ~${real_user}/.bashrc ]]; then
-        echo ${mmstatusalias} >> ~${real_user}/.bashrc
-    else
-        echo "Can't find appropriate rc"
-        echo ""
-    fi
-}
-
 # Get pip
 getpip() {
     if [[ -x $(which wget 2>/dev/null) ]]; then
@@ -166,18 +154,6 @@ runplaybook() {
     fi
 }
 
-# Add the user to the MM group
-groupadd() {
-    if [[ -x $(which usermod 2>/dev/null) ]]; then
-        usermod -a -G minemeld ${real_user} # add your user to minemeld group, useful for development
-    elif [[ -x /usr/sbin/usermod ]]; then
-        /usr/sbin/usermod -a -G minemeld ${real_user}
-    else
-        echo "Unexpected error updating your group membership"
-        echo ""
-    fi
-}
-
 # Read /etc for version info
 distrocheck() {
     if [[ -r /etc/centos-release ]]; then
@@ -212,34 +188,6 @@ runplaybook
 # Check Minemeld status
 sleep 5
 echo "Waiting for MineMeld to start"
-sleep 55
+sleep 45
 
 sudo -u minemeld /opt/minemeld/engine/current/bin/supervisorctl -c /opt/minemeld/supervisor/config/supervisord.conf status
-
-# Add to group?
-while [[ ${groupanswer}=="" ]]; do
-    read -p "Add an alias for MineMeld Satus? [y/n]: " groupanswer
-    if [[ ${groupanswer} == "Y" || ${groupanswer} == "y" ]]; then
-        groupadd
-    elif [[ ${groupanswer} == "N" || ${groupanswer} == "n" ]]; then
-        break
-    else
-        echo "Bad input"
-        echo ""
-        groupanswer=""
-    fi
-done
-
-# Add aliases to /etc/profile?
-while [[ ${aliasanswer}=="" ]]; do
-    read -p "Add an alias for MineMeld Satus? [y/n]: " aliasanswer
-    if [[ ${aliasanswer} == "Y" || ${aliasanswer} == "y" ]]; then
-        addalias
-    elif [[ ${aliasanswer} == "N" || ${aliasanswer} == "n" ]]; then
-        break
-    else
-        echo "Bad input"
-        echo ""
-        aliasanswer=""
-    fi
-done
