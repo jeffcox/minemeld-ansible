@@ -135,7 +135,7 @@ gitmm() {
         echo "Looks like you already have the Ansible Playbook, skipping git clone"
         echo ""
     else
-        git clone https://github.com/jeffcox/minemeld-ansible.git ${tmpdir}
+        git clone https://github.com/PaloAltoNetworks/minemeld-ansible.git ${tmpdir}
     fi
 }
 
