@@ -1,10 +1,11 @@
 [Unit]
 Description=Process Monitoring and Control Daemon
-Requires=network.target redis.service rabbitmq-server.service collectd.service
-After=network.target redis.service rabbitmq-server.service collectd.service
+Requires=network.target redis.service collectd.service
+After=network.target redis.service collectd.service
 
 [Service]
 Type=forking
+LimitNOFILE=65535
 PIDFile=/var/run/minemeld/minemeld.pid
 ExecStartPre=-/bin/mkdir /var/run/minemeld
 ExecStartPre=/bin/chown -R minemeld:minemeld /var/run/minemeld/
